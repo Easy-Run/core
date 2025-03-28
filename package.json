@@ -1,0 +1,14 @@
+{
+  "name": "easy-run-core",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build:js": "tsc",
+    "build:java": "mvn clean package",
+    "build": "npm run build:js && npm run build:java"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "typescript": "^5.8.2"
+  }
+}
