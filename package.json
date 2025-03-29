@@ -2,6 +2,7 @@
   "name": "easy-run-core",
   "version": "0.1.0",
   "main": "dist/js/index.js",
+  "type": "module",
   "scripts": {
     "build:js": "tsc",
     "build:java": "mvn clean package",

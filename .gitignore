@@ -5,9 +5,11 @@ node_modules/
 # Ignorer tout le dossier target, MAIS NE PAS IGNORER LES FICHIERS JAR
 target/*
 !target/*.jar
+/target/original-core-*.jar
 
 # Ignorer les fichiers de logs
 *.log
 
 # Ignorer les fichiers de configuration sensibles
 config.json
+dependency-reduced-pom.xml

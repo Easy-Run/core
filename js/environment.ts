@@ -1,14 +1,15 @@
 // environment.ts
-import runCoreJar from "./javaBridge";
+import runCoreJar from "./javaBridge.js";
 
-export function initialize(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    runCoreJar(['initialize'], (err: any, stdout: string, stderr: string) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
+const className: string = 'com.easyrun.environment.EnvironmentInitializer'
+
+const environment = {
+  initialize: (
+    successCallback: (result: any) => void,
+    errorCallback: (err: any) => void
+  ): void => {
+    runCoreJar([className, 'initialize'], successCallback, errorCallback);
+  }
+};
+
+export default environment
