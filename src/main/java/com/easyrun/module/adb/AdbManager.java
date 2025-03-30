@@ -30,7 +30,6 @@ public class AdbManager {
         } else {
             throw new RuntimeException("OS non supporté : " + os);
         }
-        // Construit le chemin complet : par exemple "lib/platform-tools/Win/adb.exe"
         String adbPath = PLATFORM_TOOLS_DIR + File.separator + os + File.separator + adbExecutable;
         return adbPath;
     }
@@ -38,12 +37,54 @@ public class AdbManager {
     public AdbManager(String methodName, CallbackContext callbackContext, Object[] args) {
         switch (methodName) {
             case "getPdaList" -> getPdaList(callbackContext);
-            // case "executeRequest" -> executeRequest(callbackContext, args);
+            case "launchScrcpy" -> launchScrcpy(callbackContext, args);
             default -> {
                 JSONObject errorMessage = new JSONObject();
                 errorMessage.put("message", "La méthode " + methodName + " n'existe pas");
                 callbackContext.error(errorMessage);
             }
+        }
+    }
+
+    public static void launchScrcpy(CallbackContext callbackContext, Object[] args) {
+        try {
+            if (args == null || args.length == 0) {
+                JSONObject errorMessage = new JSONObject();
+                errorMessage.put("message", "Le numéro de série est requis.");
+                callbackContext.error(errorMessage);
+                return;
+            }
+
+            String serialNumber = args[0].toString();
+
+            // Récupère le dossier racine de l'application
+            String npmDir = System.getProperty("user.dir");
+            // Construit le chemin complet vers scrcpy.exe
+            String executablePath = npmDir + File.separator + "lib" + File.separator + "scrcpy" + File.separator + "scrcpy.exe";
+            
+            // Prépare le ProcessBuilder avec les arguments "-s" et le numéro de série
+            ProcessBuilder pb = new ProcessBuilder(executablePath, "-s", serialNumber);
+            // Redirige la sortie d'erreur sur la sortie standard
+            pb.redirectErrorStream(true);
+            // Démarre le processus (détaché)
+            Process process = pb.start();
+            
+            // Lit la sortie du processus dans un thread séparé
+            new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }).start();
+            
+        } catch (Exception e) {
+            JSONObject error = new JSONObject();
+            error.put("message", e.getMessage());
+            callbackContext.error(error);
         }
     }
 

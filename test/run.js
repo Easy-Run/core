@@ -37,8 +37,11 @@ const getPdaList = () => {
 }
 
 const getApplicationList = () => {
-  console.log("%c run.js #40 || database.application : ", 'background:red;color:#fff;font-weight:bold;', database.application);
   return new Promise((resolve, reject) => database.application.getApplicationList(resolve, reject))
+}
+
+const launchStreamPda = () => {
+  return new Promise((resolve, reject) => module.adb.launchScrcpy(resolve, reject, '0182dbc9955c'))
 }
 
 (async () => {
@@ -69,8 +72,13 @@ const getApplicationList = () => {
     const pdaList = await getPdaList()
     console.log("%c run.js #61 || pdaList : ", 'background:red;color:#fff;font-weight:bold;', pdaList);
 
+    //? liste des applications
     const appList = await getApplicationList()
     console.log("%c run.js #72 || appList : ", 'background:red;color:#fff;font-weight:bold;', appList);
+
+    //? lancement de scrcpy sur le redmi note 11
+    const res = await launchStreamPda()
+    console.log("%c run.js #81 || res : ", 'background:red;color:#fff;font-weight:bold;', res);
 
   } catch(err) {
     console.log("%c run.js #19 || err : ", 'background:red;color:#fff;font-weight:bold;', err);
