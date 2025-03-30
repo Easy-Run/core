@@ -16,9 +16,12 @@ import org.flywaydb.core.Flyway;
 import org.json.JSONObject;
 
 import com.easyrun.CallbackContext;
+import com.easyrun.LogController;
 import com.easyrun.environment.EnvironmentInitializer;
 
 public class DatabaseInitializer {
+
+    private static final LogController logger = new LogController();
 
     public DatabaseInitializer(String methodName, CallbackContext callbackContext, Object[] args) {
         switch (methodName) {

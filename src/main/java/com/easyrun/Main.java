@@ -59,7 +59,6 @@ public class Main {
                 JSONArray jsonParams = new JSONArray(paramsString);
                 methodParams = jsonParams.toList().toArray();
             }
-            
             // Chargement de la classe demandée et instanciation avec les arguments :
             // - le nom de la méthode à appeler (en String)
             // - le CallbackContext

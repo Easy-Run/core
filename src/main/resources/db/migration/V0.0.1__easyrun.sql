@@ -50,3 +50,12 @@ INSERT INTO config_param (code, value, description, is_visible, editable, type, 
 
 INSERT INTO config_param (code, value, description, is_visible, editable, type, idconfig_category) VALUES
 ('DEBUG_LEVEL', '0', 'Niveau de debug pour l''écriture des logs', 1, 1, 'number', (SELECT id FROM config_category WHERE code = 'CORE'));
+
+CREATE TABLE application (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) DEFAULT NULL,
+    package_name VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_default BOOLEAN DEFAULT NULL,
+    build_path TEXT DEFAULT NULL
+);

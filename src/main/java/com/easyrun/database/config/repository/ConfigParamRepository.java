@@ -7,8 +7,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.easyrun.LogController;
+
 
 public class ConfigParamRepository extends BaseRepository {
+
+    private static final LogController logger = new LogController();
 
     public ConfigParamRepository() {
         super();
@@ -97,9 +101,29 @@ public class ConfigParamRepository extends BaseRepository {
     }
 
     /**
+     * Mise à jour de la valeur d'un paramètre
+     * 
+     * @param configParam
+     * @return
+     * @throws SQLException
+     */
+    public int updateValue(ConfigParam configParam) throws SQLException {
+        String sql = "UPDATE config_param SET value = ? where id = ?";
+        try (
+            Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+        ) {
+            stmt.setString(1, configParam.getValue());
+            stmt.setInt(2, configParam.getId());
+            int affected = stmt.executeUpdate();
+            return affected;
+        }
+    }
+
+    /**
      * Supprime le ConfigParam ayant l'id spécifié.
      */
-    public boolean delete(int id) throws SQLException {
+    /* public boolean delete(int id) throws SQLException {
         String sql = "DELETE FROM config_param WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -107,7 +131,7 @@ public class ConfigParamRepository extends BaseRepository {
             int affected = stmt.executeUpdate();
             return affected == 1;
         }
-    }
+    } */
 
     /**
      * Convertit une ligne du ResultSet en objet ConfigParam.

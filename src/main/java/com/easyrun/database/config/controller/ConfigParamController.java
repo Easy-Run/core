@@ -2,11 +2,13 @@ package com.easyrun.database.config.controller;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.easyrun.CallbackContext;
+import com.easyrun.LogController;
 import com.easyrun.database.config.model.ConfigCategory;
 import com.easyrun.database.config.model.ConfigParam;
 import com.easyrun.database.config.repository.ConfigCategoryRepository;
@@ -14,14 +16,41 @@ import com.easyrun.database.config.repository.ConfigParamRepository;
 
 public class ConfigParamController {
 
+    private static final LogController logger = new LogController();
+
     public ConfigParamController(String methodName, CallbackContext callbackContext, Object[] args) {
         switch (methodName) {
             case "getConfigList" -> getConfigList(callbackContext);
+            case "updateConfigValue" -> updateConfigValue(callbackContext, args);
             default -> {
                 JSONObject errorMessage = new JSONObject();
                 errorMessage.put("message", "La méthode " + methodName + " n'existe pas");
                 callbackContext.error(errorMessage);
             }
+        }
+    }
+
+    public static void updateConfigValue(CallbackContext callbackContext, Object[] args) {
+        JSONObject errorMessage = new JSONObject();
+        try {
+            Map<?, ?> mapInput = (Map<?, ?>) args[0];
+            JSONObject input = new JSONObject(mapInput);
+            int id = input.getInt("id");
+            String value = input.getString("value");
+
+            ConfigParam configParam = new ConfigParam();
+            configParam.setId(id);
+            configParam.setValue(value);
+
+            ConfigParamRepository paramRepo = new ConfigParamRepository();
+            int affected = paramRepo.updateValue(configParam);
+
+            JSONObject result = new JSONObject();
+            result.put("rowsAffected", affected);
+            callbackContext.success(result);
+        } catch (SQLException e) {
+            errorMessage.put("message", e.getMessage());
+            callbackContext.error(errorMessage);
         }
     }
 

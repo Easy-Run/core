@@ -35,6 +35,18 @@ public class EnvironmentInitializer {
         }
     }
 
+    public static String getOS() {
+        if (OS_NAME.contains("win")) {
+            return "Win";
+        } else if (OS_NAME.contains("mac")) {
+            return "MAC";
+        } else if (OS_NAME.contains("nux") || OS_NAME.contains("nix") || OS_NAME.contains("aix")) {
+            return "Linux";
+        } else {
+            return "Unknown";
+        }
+    }
+
     private static final String EASYRUN_DIR = getEasyRunDir();
     private static final String LOGS_DIR = EASYRUN_DIR + File.separator + "logs";
     private static final String PDA_DATABASES_DIR = EASYRUN_DIR + File.separator + "pda_databases";
