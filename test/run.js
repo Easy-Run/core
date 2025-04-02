@@ -41,7 +41,25 @@ const getApplicationList = () => {
 }
 
 const launchStreamPda = () => {
-  return new Promise((resolve, reject) => module.adb.launchScrcpy(resolve, reject, '0182dbc9955c'))
+  return new Promise((resolve, reject) => module.adb.launchScrcpy(resolve, reject, '18344B686A'))
+}
+
+const launchApp = () => {
+  return new Promise((resolve, reject) => module.adb.launchApp(resolve, reject, 'net.distrilog.easymobile', '18344B686A'))
+}
+
+const uninstallApp = () => {
+  return new Promise((resolve, reject) => module.adb.uninstallApp(resolve, reject, 'net.distrilog.easymobile', '18344B686A'))
+}
+
+const clearApp = () => {
+  return new Promise((resolve, reject) => module.adb.clearApp(resolve, reject, 'net.distrilog.easymobile', '18344B686A'))
+}
+
+const runCordova = () => {
+  return new Promise((resolve, reject) => module.adb.runCordova(resolve, reject,
+    (progress) => console.log(progress.progressMessage), '18344B686A', 1)
+  )
 }
 
 (async () => {
@@ -77,8 +95,26 @@ const launchStreamPda = () => {
     console.log("%c run.js #72 || appList : ", 'background:red;color:#fff;font-weight:bold;', appList);
 
     //? lancement de scrcpy sur le redmi note 11
-    const res = await launchStreamPda()
-    console.log("%c run.js #81 || res : ", 'background:red;color:#fff;font-weight:bold;', res);
+    /* const res = await launchStreamPda()
+    console.log("%c run.js #81 || res : ", 'background:red;color:#fff;font-weight:bold;', res); */
+
+    //? lancement d'une app
+    /* const res = await launchApp()
+    console.log("%c run.js #92 || res : ", 'background:red;color:#fff;font-weight:bold;', res); */
+  
+    //? désinstallation d'une app
+    /* const res = await uninstallApp()
+    console.log("%c run.js #92 || res : ", 'background:red;color:#fff;font-weight:bold;', res); */
+  
+    //? clear d'une app
+    /* const res = await clearApp()
+    console.log("%c run.js #92 || res : ", 'background:red;color:#fff;font-weight:bold;', res);
+    await launchApp() */
+  
+    //? run cordova
+    await runCordova()
+    console.log("%c run.js #116 || fin du build", 'background:blue;color:#fff;font-weight:bold;');
+    // console.log("%c run.js #92 || res : ", 'background:red;color:#fff;font-weight:bold;', res);
 
   } catch(err) {
     console.log("%c run.js #19 || err : ", 'background:red;color:#fff;font-weight:bold;', err);

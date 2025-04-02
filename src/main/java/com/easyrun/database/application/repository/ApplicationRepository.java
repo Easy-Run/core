@@ -154,9 +154,8 @@ public class ApplicationRepository extends BaseRepository {
         app.setId(rs.getInt("id"));
         app.setName(rs.getString("name"));
         app.setPackageName(rs.getString("package_name"));
-        app.setIsActive(rs.getBoolean("is_active"));
-        Boolean isDefault = (Boolean) rs.getObject("is_default");
-        app.setIsDefault(isDefault);
+        app.setIsActive(rs.getInt("is_default") == 1);
+        app.setIsDefault(rs.getInt("is_default") == 1);
         app.setBuildPath(rs.getString("build_path"));
         return app;
     }

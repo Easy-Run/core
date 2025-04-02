@@ -3,12 +3,16 @@ package com.easyrun.module.adb;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.easyrun.CallbackContext;
 import com.easyrun.LogController;
+import com.easyrun.database.application.model.Application;
+import com.easyrun.database.application.repository.ApplicationRepository;
 import com.easyrun.environment.EnvironmentInitializer;
 
 public class AdbManager {
@@ -38,6 +42,10 @@ public class AdbManager {
         switch (methodName) {
             case "getPdaList" -> getPdaList(callbackContext);
             case "launchScrcpy" -> launchScrcpy(callbackContext, args);
+            case "launchApp" -> launchApp(callbackContext, args);
+            case "uninstallApp" -> uninstallApp(callbackContext, args);
+            case "clearApp" -> clearApp(callbackContext, args);
+            case "runCordova" -> runCordova(callbackContext, args);
             default -> {
                 JSONObject errorMessage = new JSONObject();
                 errorMessage.put("message", "La méthode " + methodName + " n'existe pas");
@@ -70,17 +78,268 @@ public class AdbManager {
             Process process = pb.start();
             
             // Lit la sortie du processus dans un thread séparé
-            new Thread(() -> {
+            StringBuilder output = new StringBuilder();
+            Thread outputReader = new Thread(() -> {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        System.out.println(line);
+                        output.append(line).append("\n");
+                        // System.out.println(line);
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
-            }).start();
+            });
+            outputReader.start();
+
+            // Attendre la fin du processus
+            int exitCode = process.waitFor();
+            outputReader.join();
+
+            if (exitCode != 0) {
+                String errorMsg = "Erreur lors du lancement de scrcpy : " + output.toString();
+                throw new RuntimeException(errorMsg);
+            } else {
+                // Sinon, on renvoie la sortie en guise de succès.
+                callbackContext.success(output.toString());
+            }    
             
+        } catch (Exception e) {
+            JSONObject error = new JSONObject();
+            error.put("message", e.getMessage());
+            callbackContext.error(error);
+        }
+    }
+
+    public static void launchApp(CallbackContext callbackContext, Object[] args) {
+        try {
+            if (args == null || args.length == 0) {
+                JSONObject errorMessage = new JSONObject();
+                errorMessage.put("message", "Le nom du package est requis.");
+                callbackContext.error(errorMessage);
+                return;
+            }
+    
+            String packageName = args[0].toString();
+
+            String deviceSerial = args[1].toString();
+    
+            String adbPath = getAdbPath();
+    
+            // Prépare la commande pour lancer l'application via la MainActivity
+            // Remarque : cela suppose que l'activité principale est nommée "MainActivity"
+            String component = packageName + "/.MainActivity";
+            ProcessBuilder pb = new ProcessBuilder(adbPath, "-s", deviceSerial, "shell", "am", "start", "-n", component);
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+    
+            StringBuilder output = new StringBuilder();
+            Thread outputReader = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+            outputReader.start();
+            int exitCode = process.waitFor();
+            outputReader.join();
+    
+            if (exitCode != 0) {
+                throw new RuntimeException("Erreur lors du lancement de l'application : " + output.toString());
+            } else {
+                callbackContext.success(output.toString());
+            }
+        } catch (Exception e) {
+            JSONObject error = new JSONObject();
+            error.put("message", e.getMessage());
+            callbackContext.error(error);
+        }
+    }
+    
+    public static void uninstallApp(CallbackContext callbackContext, Object[] args) {
+        try {
+            if (args == null || args.length == 0) {
+                JSONObject errorMessage = new JSONObject();
+                errorMessage.put("message", "Le nom du package est requis.");
+                callbackContext.error(errorMessage);
+                return;
+            }
+    
+            String packageName = args[0].toString();
+
+            String deviceSerial = args[1].toString();
+    
+            String adbPath = getAdbPath();
+    
+            // Prépare la commande pour désinstaller l'application
+            ProcessBuilder pb = new ProcessBuilder(adbPath, "-s", deviceSerial, "uninstall", packageName);
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+    
+            StringBuilder output = new StringBuilder();
+            Thread outputReader = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+            outputReader.start();
+            int exitCode = process.waitFor();
+            outputReader.join();
+    
+            if (exitCode != 0) {
+                throw new RuntimeException("Erreur lors de la désinstallation de l'application : " + output.toString());
+            } else {
+                callbackContext.success(output.toString());
+            }
+        } catch (Exception e) {
+            JSONObject error = new JSONObject();
+            error.put("message", e.getMessage());
+            callbackContext.error(error);
+        }
+    }
+
+    public static void clearApp(CallbackContext callbackContext, Object[] args) {
+        try {
+            // Vérifier que nous avons au moins 2 arguments (nom du package et numéro de série)
+            if (args == null || args.length < 2) {
+                JSONObject errorMessage = new JSONObject();
+                errorMessage.put("message", "Le nom du package et le numéro de série sont requis.");
+                callbackContext.error(errorMessage);
+                return;
+            }
+            
+            // Récupérer les arguments
+            String packageName = args[0].toString();
+            String deviceSerial = args[1].toString();
+            
+            // Obtenir le chemin vers adb.exe (la méthode getAdbPath() doit être définie ailleurs dans votre code)
+            String adbPath = getAdbPath();
+            
+            // Préparer la commande adb pour vider les données de l'application (pm clear)
+            ProcessBuilder pb = new ProcessBuilder(adbPath, "-s", deviceSerial, "shell", "pm", "clear", packageName);
+            pb.redirectErrorStream(true); // Redirige la sortie d'erreur vers la sortie standard
+            
+            // Démarrer le processus
+            Process process = pb.start();
+            
+            // Utiliser un StringBuilder pour construire la sortie du processus
+            StringBuilder output = new StringBuilder();
+            
+            // Créer un thread pour lire la sortie du processus
+            Thread outputReader = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+            outputReader.start();
+            
+            // Attendre que le processus se termine
+            int exitCode = process.waitFor();
+            // Attendre que le thread de lecture ait fini
+            outputReader.join();
+            
+            // Si le code de sortie n'est pas 0, c'est qu'il y a eu une erreur
+            if (exitCode != 0) {
+                throw new RuntimeException("Erreur lors du clear de l'application : " + output.toString());
+            } else {
+                // Sinon, renvoyer la sortie comme succès
+                callbackContext.success(output.toString());
+            }
+        } catch (Exception e) {
+            JSONObject error = new JSONObject();
+            error.put("message", e.getMessage());
+            callbackContext.error(error);
+        }
+    }
+
+    public static void runCordova(CallbackContext callbackContext, Object[] args) {
+        try {
+            // Vérifier qu'on a au moins un argument (le numéro de série)
+            if (args == null || args.length == 0) {
+                JSONObject errorMessage = new JSONObject();
+                errorMessage.put("message", "Le numéro de série est requis.");
+                callbackContext.error(errorMessage);
+                return;
+            }
+    
+            // Récupérer le numéro de série
+            String serialNumber = args[0].toString();
+
+            List<String> command = new ArrayList<>();
+            if (EnvironmentInitializer.getOS().contains("Win")) {
+                command.add("cordova.cmd");
+            } else {
+                command.add("cordova");
+            }
+            command.add("run");
+            command.add("android");
+            command.add("--target=" + serialNumber);
+
+            ProcessBuilder pb = new ProcessBuilder(command);
+
+            Integer idApplication = (args.length > 1 && args[1] != null) ? (Integer) args[1] : null;
+
+            if (idApplication != null) {
+                ApplicationRepository repository = new ApplicationRepository();
+                Application app = repository.findById(idApplication);
+                
+                if (app != null && app.getBuildPath() != null && !app.getBuildPath().isEmpty()) {
+                    File buildDir = new File(app.getBuildPath());
+                    pb.directory(buildDir);
+                }
+            }
+
+            pb.redirectErrorStream(true);
+    
+            // Démarrer le processus
+            Process process = pb.start();
+    
+            // Utiliser un StringBuilder pour construire la sortie du processus
+            StringBuilder output = new StringBuilder();
+    
+            // Créer un thread pour lire la sortie en continu du processus
+            Thread outputReader = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                        // Vous pouvez aussi afficher la sortie en continu avec System.out.println(line);
+
+                        JSONObject progressObj = new JSONObject();
+                        progressObj.put("progressMessage", line);
+                        callbackContext.progress(progressObj);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+            outputReader.start();
+    
+            // Attendre la fin du processus
+            int exitCode = process.waitFor();
+            // Attendre que le thread de lecture ait terminé
+            outputReader.join();
+    
+            // Vérifier le code de sortie
+            if (exitCode != 0) {
+                throw new RuntimeException("Erreur lors de l'exécution de cordova run : " + output.toString());
+            } else {
+                callbackContext.success(output.toString());
+            }
         } catch (Exception e) {
             JSONObject error = new JSONObject();
             error.put("message", e.getMessage());
@@ -92,7 +351,7 @@ public class AdbManager {
      * Récupère la liste des PDA en exécutant "adb devices -l" et enrichit les informations
      * via des commandes adb complémentaires.
      */
-    public static CallbackContext getPdaList(CallbackContext callbackContext) {
+    public static void getPdaList(CallbackContext callbackContext) {
         JSONObject result = new JSONObject();
         try {
             String adbPath = getAdbPath();
@@ -133,7 +392,6 @@ public class AdbManager {
             error.put("message", e.getMessage());
             callbackContext.error(error);
         }
-        return callbackContext;
     }
 
     /**

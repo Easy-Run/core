@@ -16,9 +16,15 @@ public class Main {
             public void success(Object object) {
                 System.out.println(object.toString());
             }
+
             @Override
             public void error(Object object) {
                 System.err.println(object.toString());
+            }
+
+            @Override
+            public void progress(JSONObject progress) {
+                System.out.println(progress.toString());
             }
         };
 
