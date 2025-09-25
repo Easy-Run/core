@@ -376,7 +376,6 @@ public class AdbManager {
                 String deviceSerial = tokens[0];
                 // Récupère les infos complémentaires pour chaque PDA
                 String model = getPdaModel(deviceSerial);
-                String serialNumber = getPdaSerialNumber(deviceSerial);
                 String androidVersion = getPdaAndroidVersion(deviceSerial);
 
                 JSONObject device = new JSONObject();

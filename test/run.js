@@ -3,6 +3,8 @@ import { environment, database, module } from '../dist/js/index.js';
 
 console.log("%c run.js #4 || DEBUT RUN.JS", 'background:blue;color:#fff;font-weight:bold;');
 
+const pdaTest = '0182dbc9955c' // 2201116SG
+
 const envInit = () => {
   return new Promise((resolve, reject) => {
     environment.initialize(resolve, reject)
@@ -41,24 +43,24 @@ const getApplicationList = () => {
 }
 
 const launchStreamPda = () => {
-  return new Promise((resolve, reject) => module.adb.launchScrcpy(resolve, reject, '0182dbc9955c')) // 2201116SG
+  return new Promise((resolve, reject) => module.adb.launchScrcpy(resolve, reject, pdaTest)) // 2201116SG
 }
 
 const launchApp = () => {
-  return new Promise((resolve, reject) => module.adb.launchApp(resolve, reject, 'net.distrilog.easymobile', '18344B686A'))
+  return new Promise((resolve, reject) => module.adb.launchApp(resolve, reject, 'net.distrilog.easymobile', pdaTest))
 }
 
 const uninstallApp = () => {
-  return new Promise((resolve, reject) => module.adb.uninstallApp(resolve, reject, 'net.distrilog.easymobile', '18344B686A'))
+  return new Promise((resolve, reject) => module.adb.uninstallApp(resolve, reject, 'net.distrilog.easymobile', pdaTest))
 }
 
 const clearApp = () => {
-  return new Promise((resolve, reject) => module.adb.clearApp(resolve, reject, 'net.distrilog.easymobile', '18344B686A'))
+  return new Promise((resolve, reject) => module.adb.clearApp(resolve, reject, 'net.distrilog.easymobile', pdaTest))
 }
 
 const runCordova = () => {
   return new Promise((resolve, reject) => module.adb.runCordova(resolve, reject,
-    (progress) => console.log(progress.progressMessage), '18344B686A'/* , 1 */)
+    (progress) => console.log(progress.progressMessage), pdaTest/* , 1 */)
   )
 }
 
@@ -103,8 +105,8 @@ const runCordova = () => {
     console.log("%c run.js #92 || res : ", 'background:red;color:#fff;font-weight:bold;', res); */
   
     //? désinstallation d'une app
-    /* const res = await uninstallApp()
-    console.log("%c run.js #92 || res : ", 'background:red;color:#fff;font-weight:bold;', res); */
+    const res = await uninstallApp()
+    console.log("%c run.js #92 || res : ", 'background:red;color:#fff;font-weight:bold;', res);
   
     //? clear d'une app
     /* const res = await clearApp()
