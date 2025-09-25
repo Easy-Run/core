@@ -49,7 +49,7 @@ public class EnvironmentInitializer {
 
     private static final String EASYRUN_DIR = getEasyRunDir();
     private static final String LOGS_DIR = EASYRUN_DIR + File.separator + "logs";
-    private static final String PDA_DATABASES_DIR = EASYRUN_DIR + File.separator + "pda_databases";
+    private static final String PDA_DIR = EASYRUN_DIR + File.separator + "pda";
     private static final String CORE_DB_DIR = EASYRUN_DIR + File.separator + "core_data";
 
     public static void initialize(CallbackContext callbackContext) {
@@ -57,7 +57,7 @@ public class EnvironmentInitializer {
         try {
             createDirectory(EASYRUN_DIR);
             createDirectory(LOGS_DIR);
-            createDirectory(PDA_DATABASES_DIR);
+            createDirectory(PDA_DIR);
             createDirectory(CORE_DB_DIR);
 
             result.put("message", "Initialisation réussi");

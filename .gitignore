@@ -13,3 +13,5 @@ target/*
 # Ignorer les fichiers de configuration sensibles
 config.json
 dependency-reduced-pom.xml
+
+historique.md

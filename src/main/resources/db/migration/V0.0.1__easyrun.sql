@@ -59,3 +59,12 @@ CREATE TABLE application (
     is_default BOOLEAN DEFAULT NULL,
     build_path TEXT DEFAULT NULL
 );
+
+CREATE TABLE application_resource (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_application INTEGER NOT NULL,
+    name VARCHAR(255),
+    path TEXT,
+    type VARCHAR(50) NOT NULL CHECK(type IN ('file', 'folder'))
+    FOREIGN KEY (id_application) REFERENCES application(id)
+);

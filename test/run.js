@@ -58,7 +58,7 @@ const clearApp = () => {
 
 const runCordova = () => {
   return new Promise((resolve, reject) => module.adb.runCordova(resolve, reject,
-    (progress) => console.log(progress.progressMessage), '18344B686A', 1)
+    (progress) => console.log(progress.progressMessage), '18344B686A'/* , 1 */)
   )
 }
 
