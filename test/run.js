@@ -41,7 +41,7 @@ const getApplicationList = () => {
 }
 
 const launchStreamPda = () => {
-  return new Promise((resolve, reject) => module.adb.launchScrcpy(resolve, reject, '18344B686A'))
+  return new Promise((resolve, reject) => module.adb.launchScrcpy(resolve, reject, '0182dbc9955c')) // 2201116SG
 }
 
 const launchApp = () => {
@@ -112,9 +112,9 @@ const runCordova = () => {
     await launchApp() */
   
     //? run cordova
-    await runCordova()
+    /* const res2 = await runCordova()
     console.log("%c run.js #116 || fin du build", 'background:blue;color:#fff;font-weight:bold;');
-    // console.log("%c run.js #92 || res : ", 'background:red;color:#fff;font-weight:bold;', res);
+    console.log("%c run.js #117 || res2 : ", 'background:red;color:#fff;font-weight:bold;', res2); */
 
   } catch(err) {
     console.log("%c run.js #19 || err : ", 'background:red;color:#fff;font-weight:bold;', err);

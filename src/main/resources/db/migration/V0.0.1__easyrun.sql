@@ -65,6 +65,6 @@ CREATE TABLE application_resource (
     id_application INTEGER NOT NULL,
     name VARCHAR(255),
     path TEXT,
-    type VARCHAR(50) NOT NULL CHECK(type IN ('file', 'folder'))
+    type VARCHAR(50) NOT NULL CHECK(type IN ('file', 'folder')),
     FOREIGN KEY (id_application) REFERENCES application(id)
 );
