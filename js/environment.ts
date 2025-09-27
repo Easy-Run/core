@@ -6,9 +6,10 @@ const className: string = 'com.easyrun.environment.EnvironmentInitializer'
 const environment = {
   initialize: (
     successCallback: (result: any) => void,
-    errorCallback: (err: any) => void
+    errorCallback: (err: any) => void,
+    ctxt: { appId: string, profile: string }
   ): void => {
-    runCoreJar([className, 'initialize'], successCallback, errorCallback);
+    runCoreJar([className, 'initialize', JSON.stringify([ctxt ?? {}])], successCallback, errorCallback);
   }
 };
 

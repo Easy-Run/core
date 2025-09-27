@@ -20,17 +20,19 @@ public class LogController {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .enable(SerializationFeature.INDENT_OUTPUT);
 
-    // Dossier des logs = <easyrunDir>/logs (créé par EnvironmentInitializer.initialize())
-    private static final Path LOG_DIR = Paths.get(EnvironmentInitializer.getEasyrunDir(), "logs");
-
     // ddMMyyyy.log (ex: 26092025.log)
     private static final DateTimeFormatter FILE_FMT = DateTimeFormatter.ofPattern("ddMMyyyy");
     // Horodatage dans chaque ligne
     private static final DateTimeFormatter TS_FMT   = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
+    // >>> chemin résolu dynamiquement selon le contexte courant
+    private static Path getLogDir() {
+        return Paths.get(EnvironmentInitializer.getEasyrunDir(), "logs");
+    }
+
     private static Path currentLogFile() {
         String name = LocalDate.now().format(FILE_FMT) + ".log";
-        return LOG_DIR.resolve(name);
+        return getLogDir().resolve(name);
     }
 
     private static String convert(Object obj) {
@@ -50,26 +52,22 @@ public class LogController {
 
     private static synchronized void write(String level, Object message, Object... additional) {
         String lvl = (level == null ? "INFO" : level);
-
         if (!(lvl.startsWith("[") && lvl.endsWith("]"))) {
             lvl = "[" + lvl + "]";
         }
-
         String lvlPadded = String.format("%-8s", lvl);
-
         String line = String.format("%s %s %s",
             LocalDateTime.now().format(TS_FMT), lvlPadded, merge(message, additional));
 
-        // Fichier (append)
         try {
-            Files.createDirectories(LOG_DIR);
+            Files.createDirectories(getLogDir());
             try (BufferedWriter w = Files.newBufferedWriter(
                     currentLogFile(), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
                 w.write(line);
                 w.newLine();
             }
         } catch (IOException ioe) {
-            // dernier recours
+            // dernier recours: stderr (n’interfère pas avec ton JSON stdout)
             System.err.println("LOG WRITE FAILURE: " + ioe);
         }
     }

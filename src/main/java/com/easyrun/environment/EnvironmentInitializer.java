@@ -1,26 +1,27 @@
 package com.easyrun.environment;
 
 import java.io.File;
-
-import org.json.JSONArray;
 import org.json.JSONObject;
-
 import com.easyrun.CallbackContext;
+import com.easyrun.core.AppContext;
 
 public class EnvironmentInitializer {
 
     public EnvironmentInitializer(String methodName, CallbackContext callbackContext, Object[] args) {
         if ("initialize".equals(methodName)) {
-            initialize(callbackContext);
+            JSONObject ctx = null;
+            if (args != null && args.length > 0 && args[0] instanceof java.util.Map<?, ?> map) {
+                ctx = new JSONObject((java.util.Map<?, ?>) map);
+            }
+            initialize(callbackContext, ctx);
         }
     }
 
-    //* le répertoire home de l'utilisateur */
     private static final String HOME_DIR = System.getProperty("user.home");
-    //* le nom de l'OS */
     private static final String OS_NAME = System.getProperty("os.name").toLowerCase();
 
-    private static String getEasyRunDir() {
+    // === OS helpers ===
+    private static String getEasyRunRoot() {
         if (OS_NAME.contains("win")) {
             String localAppData = System.getenv("LOCALAPPDATA");
             return (localAppData != null ? localAppData : HOME_DIR) + File.separator + "easyrun";
@@ -36,31 +37,52 @@ public class EnvironmentInitializer {
     }
 
     public static String getOS() {
-        if (OS_NAME.contains("win")) {
-            return "Win";
-        } else if (OS_NAME.contains("mac")) {
-            return "MAC";
-        } else if (OS_NAME.contains("nux") || OS_NAME.contains("nix") || OS_NAME.contains("aix")) {
-            return "Linux";
-        } else {
-            return "Unknown";
-        }
+        if (OS_NAME.contains("win")) return "Win";
+        if (OS_NAME.contains("mac")) return "MAC";
+        if (OS_NAME.contains("nux") || OS_NAME.contains("nix") || OS_NAME.contains("aix")) return "Linux";
+        return "Unknown";
     }
 
-    private static final String EASYRUN_DIR = getEasyRunDir();
-    private static final String LOGS_DIR = EASYRUN_DIR + File.separator + "logs";
-    private static final String PDA_DIR = EASYRUN_DIR + File.separator + "pda";
-    private static final String CORE_DB_DIR = EASYRUN_DIR + File.separator + "core_data";
+    // === Chemins dynamiques, namespacés par AppContext ===
+    public static String getEasyrunDir() {
+        String root = getEasyRunRoot();
+        String app   = AppContext.getAppId();   if (app == null || app.isEmpty()) app = "default";
+        String prof  = AppContext.getProfile(); if (prof == null || prof.isEmpty()) prof = "default";
+        return root + File.separator + app + File.separator + prof;
+    }
 
-    public static void initialize(CallbackContext callbackContext) {
+    public static String getCoreDbDir() {
+        return getEasyrunDir() + File.separator + "core_data";
+    }
+
+    public static String getLogsDir() {
+        return getEasyrunDir() + File.separator + "logs";
+    }
+
+    public static String getPdaDir() {
+        return getEasyrunDir() + File.separator + "pda";
+    }
+
+    public static void initialize(CallbackContext callbackContext, JSONObject ctx) {
         JSONObject result = new JSONObject();
         try {
-            createDirectory(EASYRUN_DIR);
-            createDirectory(LOGS_DIR);
-            createDirectory(PDA_DIR);
-            createDirectory(CORE_DB_DIR);
+            // Appliquer le contexte si fourni
+            if (ctx != null) {
+                AppContext.set(ctx.optString("appId", null),
+                               ctx.optString("profile", null),
+                               ctx.optString("baseDir", null));
+            }
+
+            // Créer les dossiers dynamiquement
+            createDirectory(getEasyrunDir());
+            createDirectory(getLogsDir());
+            createDirectory(getPdaDir());
+            createDirectory(getCoreDbDir());
 
             result.put("message", "Initialisation réussi");
+            result.put("appId", AppContext.getAppId());
+            result.put("profile", AppContext.getProfile());
+            result.put("baseDir", getEasyrunDir());
             callbackContext.success(result);
         } catch (Exception e) {
             result.put("message", e.getMessage());
@@ -70,22 +92,6 @@ public class EnvironmentInitializer {
 
     private static void createDirectory(String path) {
         File dir = new File(path);
-        if (!dir.exists()) {
-            if (dir.mkdirs()) {
-                // System.out.println("Dossier créé : " + path);
-            } else {
-                // System.err.println("Erreur lors de la création du dossier : " + path);
-            }
-        } else {
-            // System.out.println("Dossier déjà existant : " + path);
-        }
-    }
-
-    public static String getCoreDbDir() {
-        return CORE_DB_DIR;
-    }
-
-    public static String getEasyrunDir() {
-        return EASYRUN_DIR;
+        if (!dir.exists()) dir.mkdirs();
     }
 }
